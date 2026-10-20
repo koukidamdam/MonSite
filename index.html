@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Recherchez la conjugaison des verbes en français.">
+  <meta name="theme-color" content="#3157c8">
+  <title>Conjugueur français</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <nav class="navigation" aria-label="Navigation principale">
+      <a class="brand" href="#accueil">Conjugueur<span>FR</span></a>
+      <a class="navigation-link" href="#conjugueur">Conjuguer un verbe</a>
+    </nav>
+    <div class="hero" id="accueil">
+      <p class="eyebrow">La conjugaison simplement</p>
+      <h1>Trouvez la bonne forme, <span>à chaque temps.</span></h1>
+      <p>Choisissez un verbe, son groupe et le temps : votre conjugaison s’affiche instantanément.</p>
+    </div>
+  </header>
+
+  <main>
+    <section id="conjugueur" aria-labelledby="search-title">
+      <h2 id="search-title">Rechercher un verbe</h2>
+      <form action="#" method="get">
+        <label for="group">Groupe du verbe</label>
+        <select id="group" name="group">
+          <option value="1">1er groupe (-er)</option>
+          <option value="2">2e groupe (-ir, comme finir)</option>
+          <option value="3">3e groupe (verbes irréguliers)</option>
+        </select>
+
+        <label for="verb">Verbe à conjuguer</label>
+        <input
+          id="verb"
+          name="verb"
+          type="search"
+          placeholder="Ex. : parler"
+          list="verb-list"
+          autocomplete="off"
+          required
+        >
+        <datalist id="verb-list">
+        </datalist>
+        <small id="verb-help">Chargement des verbes disponibles…</small>
+
+        <label for="tense">Temps</label>
+        <select id="tense" name="tense">
+          <option value="present">Présent</option>
+          <option value="imparfait">Imparfait</option>
+          <option value="future">Futur simple</option>
+          <option value="pastSimple">Passé simple</option>
+          <option value="conditional">Conditionnel présent</option>
+          <option value="subjunctive">Subjonctif présent</option>
+          <option value="passe-compose">Passé composé</option>
+        </select>
+
+        <button type="submit">Conjuguer</button>
+      </form>
+    </section>
+
+    <section class="result-card" aria-labelledby="result-title" aria-live="polite">
+      <h2 id="result-title">Résultat</h2>
+      <p id="result-message" role="status">Choisissez un verbe et un temps pour afficher la conjugaison.</p>
+
+      <table>
+        <caption id="result-caption">Conjugaison du verbe recherché</caption>
+        <thead>
+          <tr>
+            <th scope="col">Pronom</th>
+            <th scope="col">Conjugaison</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Je</th><td>—</td></tr>
+          <tr><th scope="row">Tu</th><td>—</td></tr>
+          <tr><th scope="row">Il / Elle / On</th><td>—</td></tr>
+          <tr><th scope="row">Nous</th><td>—</td></tr>
+          <tr><th scope="row">Vous</th><td>—</td></tr>
+          <tr><th scope="row">Ils / Elles</th><td>—</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <p class="footer-brand">Conjugueur FR</p>
+    <p>Créé par Firas.H, en CM2</p>
+    <p>Fonctionne hors ligne · 7 013 verbes · <a href="COPYING">Licence GPLv2</a></p>
+    <p class="footer-note">
+      Données issues de <a href="https://github.com/allan-simon/verbiste-cordova/tree/f829bc037d48bccf9450ec6f45888c9df0cace41/data">Verbiste</a>.
+      La base est étendue mais pas exhaustive; l’auxiliaire du passé composé peut varier selon le sens du verbe.
+    </p>
+  </footer>
+
+  <script src="data/conjugaison.js"></script>
+  <script>
+    const form = document.querySelector("form");
+    const groupInput = document.querySelector("#group");
+    const verbInput = document.querySelector("#verb");
+    const tenseInput = document.querySelector("#tense");
+    const verbList = document.querySelector("#verb-list");
+    const verbHelp = document.querySelector("#verb-help");
+    const resultMessage = document.querySelector("#result-message");
+    const resultCaption = document.querySelector("#result-caption");
+    const resultRows = document.querySelectorAll("tbody tr");
+
+    const conjugaisonData = window.conjugaisonData;
+    const pronouns = ["Je", "Tu", "Il / Elle / On", "Nous", "Vous", "Ils / Elles"];
+    const auxiliaryForms = {
+      avoir: ["ai", "as", "a", "avons", "avez", "ont"],
+      être: ["suis", "es", "est", "sommes", "êtes", "sont"]
+    };
+    const etreVerbs = new Set([
+      "aller", "arriver", "descendre", "devenir", "entrer", "monter",
+      "mourir", "naître", "partir", "passer", "rester", "retourner",
+      "sortir", "tomber", "venir", "revenir", "rentrer", "remonter",
+      "redescendre", "retomber", "repartir", "ressortir", "intervenir",
+      "parvenir", "provenir", "survenir", "redevenir", "advenir"
+    ]);
+    const tenseNames = {
+      present: "présent",
+      imparfait: "imparfait",
+      future: "futur simple",
+      pastSimple: "passé simple",
+      conditional: "conditionnel présent",
+      subjunctive: "subjonctif présent",
+      "passe-compose": "passé composé"
+    };
+    const normalized = (value) => value.trim().normalize("NFC").toLocaleLowerCase("fr");
+    const verbsByName = new Map(
+      conjugaisonData.verbs.map((verb) => [normalized(verb.infinitive), verb])
+    );
+
+    function showVerbsForGroup() {
+      const group = groupInput.value;
+      const verbs = conjugaisonData.verbs.filter((verb) => verb.group === group);
+      verbList.replaceChildren();
+      verbs.forEach((verb) => {
+        const option = document.createElement("option");
+        option.value = verb.infinitive;
+        verbList.append(option);
+      });
+      verbInput.value = "";
+      verbHelp.textContent = `${verbs.length.toLocaleString("fr-FR")} verbes disponibles dans ce groupe.`;
+    }
+
+    function withAlternatives(stem, alternatives) {
+      return alternatives.map((ending) => `${stem}${ending}`).join(" / ");
+    }
+
+    function conjugate(verb, tense) {
+      const template = conjugaisonData.templates[verb.template];
+      const stem = verb.infinitive.slice(0, -template.suffix.length);
+
+      if (tense === "passe-compose") {
+        const auxiliary = verb.auxiliary || (etreVerbs.has(verb.infinitive) ? "être" : "avoir");
+        const participleForms = template.pastParticiple;
+        const presentAuxiliary = auxiliaryForms[auxiliary];
+
+        return presentAuxiliary.map((form, index) => {
+          const participleIndexes = auxiliary === "être"
+            ? (index >= 3 ? [1, 3] : [0, 2])
+            : [0];
+          const participles = participleIndexes
+            .flatMap((participleIndex) => participleForms[participleIndex] || [])
+            .map((ending) => `${stem}${ending}`);
+          return `${form} ${[...new Set(participles)].join(" / ")}`;
+        });
+      }
+
+      return template[tense].map((alternatives) => withAlternatives(stem, alternatives));
+    }
+
+    groupInput.addEventListener("change", showVerbsForGroup);
+    showVerbsForGroup();
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const verbName = normalized(verbInput.value);
+      const verb = verbsByName.get(verbName);
+      const tense = tenseInput.value;
+
+      if (!verb || verb.group !== groupInput.value) {
+        resultRows.forEach((row, index) => {
+          row.cells[0].textContent = pronouns[index];
+          row.cells[1].textContent = "—";
+        });
+        resultCaption.textContent = "Conjugaison du verbe recherché";
+        resultMessage.textContent = "Ce verbe n’est pas disponible dans le groupe choisi. Sélectionnez un verbe proposé dans la liste.";
+        return;
+      }
+
+      const forms = conjugate(verb, tense);
+      resultRows.forEach((row, index) => {
+        const formCell = row.cells[1];
+        const subjectCell = row.cells[0];
+        const elidesJe = index === 0 && /^[aeiouyàâäæéèêëîïôœùûüÿh]/i.test(forms[index]);
+        subjectCell.textContent = elidesJe ? "J’" : pronouns[index];
+        formCell.textContent = forms[index];
+      });
+
+      resultCaption.textContent = `Conjugaison du verbe « ${verb.infinitive} » au ${tenseNames[tense]}`;
+      resultMessage.textContent = `Voici la conjugaison de « ${verb.infinitive} » au ${tenseNames[tense]}.`;
+    });
+  </script>
+</body>
+</html>
