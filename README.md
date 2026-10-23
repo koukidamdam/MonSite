@@ -1,21 +1,21 @@
-# Conjugueur FR
+# MonSite
 
-Petit conjugueur de verbes français, utilisable hors ligne dans le navigateur.
+Deux outils autonomes, utilisables directement dans le navigateur : un conjugueur français et un convertisseur de masse et de volume.
 
 ## Fichiers
 
-- `index.html` : page d’accueil, prête pour GitHub Pages.
-- `style.css` : styles indépendants du HTML.
-- `data/conjugaison.js` : données locales de verbes et modèles.
+- `index.html` : page d’accueil avec les liens vers les deux outils.
+- `conjugueur/index.html` : conjugueur français.
+- `convertisseur/index.html` : convertisseur de masse et de volume.
+- `style.css` et `data/conjugaison.js` : styles et données du conjugueur.
 - `COPYING` : texte de la licence GPLv2.
 
 ## Publier avec GitHub Pages
 
-1. Ajouter ces fichiers à un dépôt GitHub.
-2. Dans **Settings → Pages**, choisir **Deploy from a branch**.
-3. Sélectionner la branche `main` et le dossier `/ (root)`, puis enregistrer.
+1. Dans **Settings → Pages**, choisir **Deploy from a branch**.
+2. Sélectionner la branche `main` et le dossier `/ (root)`, puis enregistrer.
 
-La page est publiée à l’adresse affichée dans les paramètres Pages. Aucun build ni serveur n’est nécessaire.
+Les adresses seront `https://<utilisateur>.github.io/<depot>/conjugueur/` et `https://<utilisateur>.github.io/<depot>/convertisseur/`. La page d’accueil du dépôt propose les deux liens. Aucun build ni serveur n’est nécessaire.
 
 ## Licence et source des données
 
